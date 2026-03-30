@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { profile } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -54,13 +55,38 @@ export class UsersService {
       omit: { password: true, createdAt: true },
     });
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException('User not found.');
     }
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: {
+          profile: {
+            upsert: {
+              update: { ...updateUserDto },
+              create: {
+                fullName: updateUserDto.fullName ?? '',
+                avatar: updateUserDto.avatar ?? '',
+                bio: updateUserDto.bio ?? '',
+              },
+            },
+          },
+        },
+        include: { profile: true },
+        omit: { password: true, createdAt: true, role: true },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('User not found.');
+        }
+      }
+      throw error;
+    }
   }
 
   remove(id: number) {

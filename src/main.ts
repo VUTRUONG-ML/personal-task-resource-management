@@ -7,7 +7,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true, // Báo lỗi nếu người dùng gửi thừa trường
+      forbidNonWhitelisted: true, // Báo lỗi nếu người dùng gửi field lạ
       transform: true,
     }),
   );
