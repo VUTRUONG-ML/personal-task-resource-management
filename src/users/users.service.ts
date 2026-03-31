@@ -7,7 +7,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { profile } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -42,9 +41,11 @@ export class UsersService {
 
   async findAll() {
     return await this.prisma.user.findMany({
+      include: { profile: true },
       omit: {
         password: true,
         createdAt: true,
+        role: true,
       },
     });
   }
@@ -89,7 +90,16 @@ export class UsersService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    return await this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    return user;
   }
 }
