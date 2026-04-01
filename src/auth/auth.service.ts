@@ -41,7 +41,6 @@ export class AuthService {
       loginDto.password,
       user.password,
     );
-
     if (!isMatch) throw new UnauthorizedException('Email/password invalid.');
     // 3. tạo acctoken
     const { accessToken, refreshToken } =

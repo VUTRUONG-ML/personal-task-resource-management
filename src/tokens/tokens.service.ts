@@ -32,16 +32,19 @@ export class TokensService {
     };
   }
 
-  async verifyAccessToken(token: string): Promise<JwtPayload> {
+  async verifyToken(
+    token: string,
+    secretType: 'ACCESS' | 'REFRESH',
+  ): Promise<JwtPayload> {
     try {
       return await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: this.configService.get('JWT_ACCESS_SECRET'),
+        secret: this.configService.get(`JWT_${secretType}_SECRET`),
       });
     } catch (error) {
       if (error instanceof TokenExpiredError) {
         // 401 - Token expired, Client nên thực hiện Refresh Token flow
         throw new UnauthorizedException({
-          errorCode: 'TOKEN_EXPIRED',
+          errorCode: `${secretType}_TOKEN_EXPIRED`,
           message: 'Access token has expired',
         });
       }
@@ -49,7 +52,7 @@ export class TokensService {
       if (error instanceof JsonWebTokenError) {
         // 401 - Token bị sai, giả mạo hoặc không hợp lệ
         throw new UnauthorizedException({
-          errorCode: 'INVALID_TOKEN',
+          errorCode: `INVALID_${secretType}_TOKEN`,
           message: 'Token signature is invalid',
         });
       }
