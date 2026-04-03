@@ -32,7 +32,7 @@ export class AuthService {
     const { password, ...result } = user;
     return result;
   }
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, deviceId?: string) {
     // 1. tìm user tồn tại qua email
     const user = await this.userService.findByEmail(loginDto.email);
     if (!user) throw new UnauthorizedException('Email/password invalid.');
@@ -50,7 +50,8 @@ export class AuthService {
         role: user.role,
       });
     // 4. nếu có refreshtoken thì lưu vào db
+    await this.tokenService.saveRefreshToken(user.id, refreshToken, deviceId);
     const { password: _, ...userWithoutPass } = user;
-    return { userWithoutPass, accessToken };
+    return { userWithoutPass, accessToken, refreshToken };
   }
 }

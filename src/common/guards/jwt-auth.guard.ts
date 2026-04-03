@@ -2,9 +2,15 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import { AuthGuard } from '@nestjs/passport';
 
+type DecodeToken = {
+  id: number;
+  email: string;
+  role: 'ADMIN' | 'USER';
+};
+
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  handleRequest(err: any, user: any, info: any) {
+  handleRequest<TUser = any>(err: any, user: DecodeToken, info: any): TUser {
     // 'info' chính là đối tượng chứa chi tiết lỗi từ thư viện jsonwebtoken bên dưới Passport
     // 1. Kiểm tra nếu lỗi là do Token hết hạn
     if (info instanceof TokenExpiredError) {
@@ -37,6 +43,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     // Nếu mọi thứ đều ổn, trả về user để NestJS gắn nó vào req.user
-    return user;
+    return user as TUser;
   }
 }

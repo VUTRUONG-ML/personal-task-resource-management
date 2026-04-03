@@ -17,6 +17,7 @@ model User {
   password  String   @db.VarChar(255)
   role      Role      @default(USER)
   profile   Profile?
+  refreshToken RefreshToken[]
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
 }
 enum Role {
@@ -31,4 +32,18 @@ model Profile {
   bio       String?    @db.Text     // tiểu sử ngắn
   userId    Int       @unique
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(255)
+  deviceId  String?  @db.VarChar(255) // Để định danh thiết bị (Web, Mobile, v.v.)
+  isRevoked Boolean  @default(false)  // Dùng để thu hồi token khi cần (ví dụ: đăng xuất từ xa)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId]) // Đánh index để truy vấn nhanh khi cần thu hồi tất cả token của 1 user
 }
